@@ -51,13 +51,14 @@ def main():
 
     # Setup pulse sequence parameters
     TR_ms, TE_ms = 5.0, 2.5
-    alpha_deg, phi_deg = 20.0, 180.0
+    alpha_deg, phi_deg = 1.0, 0.0
 
     # Setup material parameters
     T1_ms, T2_ms = 1400.0, 80.0
 
-    # Isochromat frequencies in Hz
-    f_iso = np.arange(-300.0, 300.0, 1.0)
+    # Isochromat off-resonance frequencies (Hz)
+    df_max = 1000.0 / (2 * TR_ms)
+    f_iso = np.linspace(0.0, df_max, 512)
 
     # Make space for results
     M = np.zeros([f_iso.size, 3])
