@@ -46,12 +46,13 @@ import numpy as np
 from numpy.linalg import inv
 from numpy import dot
 import matplotlib.pyplot as plt
+from ssfpsim import SSFPsim
 
 def main():
 
     # Setup pulse sequence parameters
     TR_ms, TE_ms = 5.0, 2.5
-    alpha_deg, phi_deg = 1.0, 0.0
+    alpha_deg, phi_deg = 5.0, 0.0
 
     # Setup material parameters
     T1_ms, T2_ms = 1400.0, 80.0
@@ -67,7 +68,7 @@ def main():
     for ff, f_Hz in enumerate(f_iso):
 
         # Call contrast equation
-        M[ff, :] = bssfp(f_Hz, TR_ms, TE_ms, alpha_deg, phi_deg, T1_ms, T2_ms)
+        M[ff, :] = SSFPsim.bssfp(f_Hz, TR_ms, TE_ms, alpha_deg, phi_deg, T1_ms, T2_ms)
 
     # Derive magnitude and phase
     Mx, My, Mz = M[:,0], M[:,1], M[:,2]
@@ -91,6 +92,8 @@ def main():
     plt.plot(f_iso, Mphi)
     plt.title('bSSFP signal phase')
     plt.xlabel('Off-resonance frequency (Hz)')
+
+    plt.tight_layout()
 
     plt.show()
 
