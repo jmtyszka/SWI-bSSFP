@@ -41,7 +41,6 @@ SOFTWARE.
 
 __version__ = '0.1.0'
 
-import argparse
 import numpy as np
 from numpy.linalg import inv
 from numpy import dot
@@ -65,18 +64,23 @@ def main():
     M = np.zeros([f_iso.size, 3])
     print(M.shape)
 
-    for ff, f_Hz in enumerate(f_iso):
+    # Create simulation object
+    sim = SSFPsim()
 
-        # Call contrast equation
-        M[ff, :] = SSFPsim.bssfp(f_Hz, TR_ms, TE_ms, alpha_deg, phi_deg, T1_ms, T2_ms)
+    for ff, f_Hz in enumerate(f_iso):
+        M[ff, :] = sim.bssfp(f_Hz, TR_ms, TE_ms, alpha_deg, phi_deg, T1_ms, T2_ms)
 
     # Derive magnitude and phase
     Mx, My, Mz = M[:,0], M[:,1], M[:,2]
     Mxy = Mx + 1.j * My
     Mmag = np.abs(Mxy)
-    Mphi = np.unwrap(np.angle(Mxy))
+    Mphi = np.unwrap(np.angle(Mxy)) * 180.0/np.pi
 
     # Plot results
+
+    plt.figure(figsize=(6,8))
+    plt.suptitle('(TR, TE, Flip, T1, T2) : (%0.2f, %0.2f, %0.1f, %0.1f, %0.1f)' % (TR_ms, TE_ms, alpha_deg, T1_ms, T2_ms))
+
     ax = plt.subplot(3,1,1)
     ll = ['Mx','My','Mz']
     for n in range(0,3):
@@ -90,10 +94,11 @@ def main():
 
     ax = plt.subplot(3,1,3)
     plt.plot(f_iso, Mphi)
-    plt.title('bSSFP signal phase')
+    plt.title('bSSFP signal phase (degs)')
     plt.xlabel('Off-resonance frequency (Hz)')
 
     plt.tight_layout()
+    plt.subplots_adjust(top=0.9)
 
     plt.show()
 
