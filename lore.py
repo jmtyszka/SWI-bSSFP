@@ -172,7 +172,7 @@ def lore(sr, si, mask, tr, te, alpha):
     :return: s0: reconstructed T2w signal without off-resonance effects
     """
 
-    use_mp = False
+    use_mp = True
 
     # Save 4D shape
     nx, ny, nz, n = sr.shape
@@ -226,10 +226,10 @@ def lore(sr, si, mask, tr, te, alpha):
             res[vox,:] = lore_core(sr_n, si_n, cos_n, sin_n, tr, te, alpha)
 
     # Allocate final results
-    s0 = np.zeros_like(mask, dtype=complex)
-    T1 = np.zeros_like(mask, dtype=complex)
-    T2 = np.zeros_like(mask, dtype=complex)
-    theta = np.zeros_like(mask, dtype=complex)
+    s0 = np.zeros_like(mask, dtype=float)
+    T1 = np.zeros_like(mask, dtype=float)
+    T2 = np.zeros_like(mask, dtype=float)
+    theta = np.zeros_like(mask, dtype=float)
 
     # Unpack results
     s0[mask] = res[:,0]
@@ -324,11 +324,12 @@ def lore_core(sr_n, si_n, cos_n, sin_n, tr, te, alpha):
         b_z = beta/eta
 
     # Relaxation parameters
-    a = np.abs(b_z)
-    b = np.abs(zeta)
+    a = np.abs(b_z, dtype=np.float)
+    b = np.abs(zeta, dtype=np.float)
 
     ca = np.cos(alpha * np.pi / 180.0)
 
+    # TODO: Frequent div-by-zero warnings from this. Possible error in parameter estimation code above
     # Relaxation time estimates
     E1 = (a * (1 + ca - a * b * ca) - b) / (a * (1 + ca - a * b) - b * ca)
     E2 = a
