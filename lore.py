@@ -52,7 +52,7 @@ from numpy import dot
 from skimage.filters import threshold_otsu
 from numpy.linalg import inv
 
-__version__ = '1.0.0'
+__version__ = '1.1.0'
 
 
 def main():
