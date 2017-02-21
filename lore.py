@@ -132,6 +132,11 @@ def main():
     # Run LORE reconstruction over all voxels
     s0, T1, T2, theta = lore(sr, si, mask, tr, te, alpha)
 
+    # TODO: Shouldn't need this if LORE is well conditioned/regularized
+    # Clamp s0 to reasonable values
+    max_s0 = np.max(sm)
+    s0[s0 > max_s0] = max_s0
+
     # Output filenames
     s0_fname = bssfp_fname.replace('.nii.gz', '_s0.nii.gz')
     T1_fname = s0_fname.replace('s0', 'T1')
@@ -318,7 +323,8 @@ def lore_core(sr_n, si_n, cos_n, sin_n, tr, te, alpha):
     # Estimate signal parameters from LORE parameters
 
     # Beta/eta ratio - handle divide-by-zero
-    if np.abs(eta) < np.finfo(float).eps:
+    eps = np.finfo(float).eps
+    if np.abs(eta) < eps:
         b_z = 0.0
     else:
         b_z = beta/eta
@@ -329,20 +335,25 @@ def lore_core(sr_n, si_n, cos_n, sin_n, tr, te, alpha):
 
     ca = np.cos(alpha * np.pi / 180.0)
 
-    # TODO: Frequent div-by-zero warnings from this. Possible error in parameter estimation code above
+    # TODO: T1, T2 estimates look wildly off - check core LORE code and conditioning
     # Relaxation time estimates
-    E1 = (a * (1 + ca - a * b * ca) - b) / (a * (1 + ca - a * b) - b * ca)
+    den = (a * (1 + ca - a * b) - b * ca)
+    if np.abs(den) < eps:
+        E1 = 0.0
+    else:
+        E1 = (a * (1 + ca - a * b * ca) - b) / den
+
     E2 = a
 
-    if E1 > 0.0:
-        T1 = -tr / np.log(E1)
-    else:
+    if E1 < eps:
         T1 = 0.0
-
-    if E2 > 0.0:
-        T2 = -tr / np.log(E2)
     else:
+        T1 = -tr / np.log(E1)
+
+    if E2 < eps:
         T2 = 0.0
+    else:
+        T2 = -tr / np.log(E2)
 
     # Phase accumulation per TR due to off-resonance frequency
     theta = -np.angle(b_z)
